@@ -37,16 +37,16 @@ class UglifyJsPlugin {
 				chunks.forEach((chunk) => files.push.apply(files, chunk.files));
 				files.push.apply(files, compilation.additionalChunkAssets);
 				const filteredFiles = files.filter(ModuleFilenameHelpers.matchObject.bind(undefined, options));
+        const assetOutputCache = new WeakSet();
 				filteredFiles.forEach((file) => {
 					const oldWarnFunction = uglify.AST_Node.warn_function;
 					const warnings = [];
 					let sourceMap;
 					try {
 						const asset = compilation.assets[file];
-						if(asset.__UglifyJsPlugin) {
-							compilation.assets[file] = asset.__UglifyJsPlugin;
-							return;
-						}
+		        if (assetOutputCache.has(asset)) {
+		          return;
+		        }
 						let input;
 						let inputSourceMap;
 						if(options.sourceMap) {
@@ -204,7 +204,7 @@ class UglifyJsPlugin {
 								}
 							}
 						}
-						asset.__UglifyJsPlugin = compilation.assets[file] = outputSource;
+						assetOutputCache.add(compilation.assets[file] = outputSource);
 						if(warnings.length > 0) {
 							compilation.warnings.push(new Error(file + " from UglifyJs\n" + warnings.join("\n")));
 						}
