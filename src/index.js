@@ -34,8 +34,9 @@ class UglifyJsPlugin {
     const { options } = this;
     options.test = options.test || /\.js($|\?)/i;
     const warningsFilter = options.warningsFilter || (() => true);
-
     const requestShortener = new RequestShortener(compiler.context);
+    const uglifiedAssets = new WeakSet();
+
     compiler.plugin('compilation', (compilation) => {
       if (options.sourceMap) {
         compilation.plugin('build-module', (module) => {
@@ -50,7 +51,6 @@ class UglifyJsPlugin {
         // eslint-disable-next-line prefer-spread
         files.push.apply(files, compilation.additionalChunkAssets);
         const filteredFiles = files.filter(ModuleFilenameHelpers.matchObject.bind(undefined, options));
-        const uglifiedAssets = new WeakSet();
         filteredFiles.forEach((file) => {
           const oldWarnFunction = uglify.AST_Node.warn_function;
           const warnings = [];
